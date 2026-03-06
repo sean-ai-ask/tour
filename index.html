@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SEAN TOUR - 올인원 가이드</title>
+    <title>SEAN TOUR - 스마트 가이드</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -14,26 +14,34 @@
         .input-row { display: flex; gap: 6px; margin-bottom: 6px; }
         .input-item { flex: 1; display: flex; flex-direction: column; gap: 3px; }
         .input-item label { font-size: 9px; color: #fbbf24; font-weight: bold; }
-        input, select { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; padding: 6px; font-size: 13px; outline: none; height: 34px; }
-        .sbtn { background: #fbbf24; color: #0c1a2e; border: none; border-radius: 6px; width: 100%; padding: 12px; font-weight: 900; font-size: 15px; cursor: pointer; transition: 0.2s; }
-        .sbtn:active { background: #d9a320; }
+        input, select, textarea { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; padding: 6px; font-size: 13px; outline: none; }
+        input, select { height: 34px; }
+        .sbtn { background: #fbbf24; color: #0c1a2e; border: none; border-radius: 6px; width: 100%; padding: 12px; font-weight: 900; font-size: 15px; cursor: pointer; }
+        
         .tab-menu { display: flex; background: #0c1a2e; border-bottom: 1px solid rgba(255,255,255,0.1); overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tab { padding: 15px 18px; font-size: 14px; font-weight: bold; color: rgba(255,255,255,0.4); cursor: pointer; position: relative; flex-shrink: 0; }
         .tab.on { color: #fbbf24; }
         .tab.on::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 3px; background: #fbbf24; }
+        
         .main-content { flex: 1; position: relative; background: #fff; }
-        .page { display: none; width: 100%; height: 100%; overflow: hidden; }
+        .page { display: none; width: 100%; height: 100%; overflow-y: auto; }
         .page.on { display: block; }
         iframe { width: 100%; height: 100%; border: none; }
+        
         .link-page { background: #0c1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
-        .link-btn { background: #4285F4; color: #fff; border: none; padding: 16px 20px; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; width: 100%; max-width: 280px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        #calcPage { background: #0c1a2e; padding: 15px; overflow-y: auto; }
+        .link-btn { background: #4285F4; color: #fff; border: none; padding: 16px 20px; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; width: 100%; max-width: 280px; }
+
+        /* 예약 탭 디자인 */
+        #myPage { background: #f4f7f9; padding: 15px; color: #333; }
+        .reserve-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .reserve-card h4 { font-size: 14px; margin-bottom: 10px; color: #0c1a2e; display: flex; align-items: center; gap: 5px; }
+        textarea { width: 100%; background: #f9f9f9; color: #333; border: 1px solid #ddd; height: 80px; resize: none; font-family: inherit; }
+
+        #calcPage { background: #0c1a2e; padding: 15px; }
         .calc-card { background: rgba(255,255,255,0.07); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
-        .calc-group { margin-bottom: 10px; }
-        .calc-group label { display: block; font-size: 11px; color: #fbbf24; margin-bottom: 5px; font-weight: bold; }
-        .calc-input-wrap { position: relative; display: flex; align-items: center; }
-        .calc-input-wrap input { font-size: 18px; font-weight: bold; padding: 10px; width: 100%; border-radius: 8px; }
-        .unit { position: absolute; right: 12px; color: rgba(255,255,255,0.5); font-weight: bold; font-size: 18px; }
+        .calc-input-wrap { position: relative; display: flex; align-items: center; margin-top: 5px; }
+        .calc-input-wrap input { font-size: 18px; font-weight: bold; width: 100%; height: 45px; }
+        
         .splash { position: absolute; inset: 0; background: #0c1a2e; z-index: 5; display: flex; align-items: center; justify-content: center; text-align: center; transition: 0.3s; }
         .splash.hide { opacity: 0; pointer-events: none; }
     </style>
@@ -45,72 +53,103 @@
         <div class="search-container">
             <div class="input-row">
                 <div class="input-item">
-                    <label>목적지</label>
-                    <input type="text" id="targetCity" value="하노이" oninput="updateBtn()">
+                    <label>어디로 떠나시나요?</label>
+                    <input type="text" id="targetCity" value="" placeholder="도시명을 입력하세요" oninput="updateBtn()">
                 </div>
                 <div class="input-item" style="flex:0.4;">
                     <label>인원</label>
-                    <select id="pCount">
-                        <option value="1">1명</option>
-                        <option value="2" selected>2명</option>
-                    </select>
+                    <select id="pCount"><option value="1">1명</option><option value="2" selected>2명</option></select>
                 </div>
             </div>
             <div class="input-row">
                 <div class="input-item"><label>가는 날</label><input type="date" id="dateStart"></div>
                 <div class="input-item"><label>오는 날</label><input type="date" id="dateEnd"></div>
             </div>
-            <button id="searchBtn" class="sbtn" onclick="runSearch()">실시간 하노이 검색</button>
+            <button id="searchBtn" class="sbtn" onclick="runSearch()">도시를 입력하세요</button>
         </div>
     </div>
 
-    <div class="tab-menu" id="tabList">
+    <div class="tab-menu">
         <div class="tab on" onclick="changeTab(this, 'flight')">항공권</div>
         <div class="tab" onclick="changeTab(this, 'food')">맛집 추천</div>
         <div class="tab" onclick="changeTab(this, 'hotel')">숙소 예약</div>
-        <div class="tab" onclick="changeTab(this, 'weather')">현지 날씨</div>
-        <div class="tab" onclick="changeTab(this, 'calc')">환율 계산</div>
+        <div class="tab" onclick="changeTab(this, 'weather')">날씨</div>
+        <div class="tab" onclick="changeTab(this, 'my')">나의 예약</div>
+        <div class="tab" onclick="changeTab(this, 'calc')">환율</div>
     </div>
 
     <div class="main-content">
         <div class="page on" id="flightPage"><iframe id="fFrame"></iframe></div>
+        
         <div class="page link-page" id="foodPage">
             <h3 id="foodTitle" style="color:#fbbf24">맛집 정보</h3>
-            <p style="font-size:14px; margin-top:10px; opacity:0.7">구글 지도의 실시간 평점을 확인하세요.</p>
-            <button id="foodBtn" class="link-btn" onclick="goLink('food')">🍴 하노이 맛집 보기</button>
+            <button id="foodBtn" class="link-btn" onclick="goLink('food')">🍴 맛집 보기</button>
         </div>
+
         <div class="page link-page" id="hotelPage">
             <h3 id="hotelTitle" style="color:#fbbf24">숙소 정보</h3>
-            <p style="font-size:14px; margin-top:10px; opacity:0.7">실시간 최저가와 빈 객실을 찾습니다.</p>
-            <button id="hotelBtn" class="link-btn" onclick="goLink('hotel')">🏨 하노이 호텔 검색</button>
+            <button id="hotelBtn" class="link-btn" onclick="goLink('hotel')">🏨 호텔 검색</button>
         </div>
+
         <div class="page link-page" id="weatherPage">
             <h3 id="weatherTitle" style="color:#fbbf24">날씨 정보</h3>
-            <p style="font-size:14px; margin-top:10px; opacity:0.7">선택하신 일정의 정확한 예보입니다.</p>
-            <button id="weatherBtn" class="link-btn" onclick="goLink('weather')">🌤️ 하노이 날씨 확인</button>
+            <button id="weatherBtn" class="link-btn" onclick="goLink('weather')">🌤️ 날씨 확인</button>
         </div>
+
+        <div class="page" id="myPage">
+            <div class="reserve-card">
+                <h4>✈️ 항공권 예약 정보</h4>
+                <textarea id="memoFlight" placeholder="예: 7C2803 인천-하노이 10:20 출발" oninput="saveMemo()"></textarea>
+            </div>
+            <div class="reserve-card">
+                <h4>🏨 숙소 예약 정보</h4>
+                <textarea id="memoHotel" placeholder="예: 소피텔 레전드 메트로폴 하노이 (체크인 14:00)" oninput="saveMemo()"></textarea>
+            </div>
+            <div class="reserve-card">
+                <h4>🍴 맛집 리스트</h4>
+                <textarea id="memoFood" placeholder="예: 오바마 분짜, 콩카페 본점" oninput="saveMemo()"></textarea>
+            </div>
+            <p style="font-size:11px; color:#888; text-align:center;">* 입력 시 자동으로 저장되며 나중에 다시 볼 수 있습니다.</p>
+        </div>
+
         <div class="page" id="calcPage">
             <div class="calc-card">
-                <p style="font-size:12px; margin-bottom:10px; color:#fbbf24">🇻🇳 베트남 동(VND) 계산기</p>
-                <div class="calc-group"><label>베트남 (VND)</label><div class="calc-input-wrap"><input type="number" id="v" oninput="ex('v')" placeholder="0"><span class="unit">₫</span></div></div>
-                <div class="calc-group"><label>원화 (KRW)</label><div class="calc-input-wrap"><input type="number" id="v_k" oninput="ex('v_k')" placeholder="0"><span class="unit">₩</span></div></div>
+                <p style="font-size:12px; margin-bottom:10px; color:#fbbf24">🇻🇳 베트남 동(VND)</p>
+                <div class="calc-input-wrap"><input type="number" id="v" oninput="ex('v')" placeholder="동(VND) 입력"><span style="position:absolute; right:10px; color:#aaa;">₫</span></div>
+                <div class="calc-input-wrap"><input type="number" id="v_k" oninput="ex('v_k')" placeholder="원(KRW) 환산"><span style="position:absolute; right:10px; color:#aaa;">₩</span></div>
             </div>
             <div class="calc-card">
-                <p style="font-size:12px; margin-bottom:10px; color:#fbbf24">🇯🇵 일본 엔화(JPY) 계산기</p>
-                <div class="calc-group"><label>일본 (JPY)</label><div class="calc-input-wrap"><input type="number" id="j" oninput="ex('j')" placeholder="0"><span class="unit">¥</span></div></div>
-                <div class="calc-group"><label>원화 (KRW)</label><div class="calc-input-wrap"><input type="number" id="j_k" oninput="ex('j_k')" placeholder="0"><span class="unit">₩</span></div></div>
+                <p style="font-size:12px; margin-bottom:10px; color:#fbbf24">🇯🇵 일본 엔화(JPY)</p>
+                <div class="calc-input-wrap"><input type="number" id="j" oninput="ex('j')" placeholder="엔(JPY) 입력"><span style="position:absolute; right:10px; color:#aaa;">¥</span></div>
+                <div class="calc-input-wrap"><input type="number" id="j_k" oninput="ex('j_k')" placeholder="원(KRW) 환산"><span style="position:absolute; right:10px; color:#aaa;">₩</span></div>
             </div>
         </div>
-        <div class="splash" id="splash"><p style="opacity:0.5;">검색 버튼을 눌러주세요!</p></div>
+
+        <div class="splash" id="splash"><p style="opacity:0.5;">여행하실 도시를 입력하고<br>검색을 눌러주세요!</p></div>
     </div>
 
     <script>
-        const codes = { '하노이': 'HAN', '오사카': 'KIX', '도쿄': 'NRT', '후쿠오카': 'FUK', '다낭': 'DAD', '나트랑': 'CXR' };
+        const codes = { '하노이': 'HAN', '오사카': 'KIX', '도쿄': 'NRT', '다낭': 'DAD', '나트랑': 'CXR', '방콕': 'BKK' };
+        
+        // 날짜 설정
         const d = new Date(); d.setDate(d.getDate() + 14);
         const e = new Date(d); e.setDate(d.getDate() + 17);
         const fmt = (x) => x.toISOString().split('T')[0];
         document.getElementById('dateStart').value = fmt(d);
         document.getElementById('dateEnd').value = fmt(e);
+
+        // 메모 불러오기
+        window.onload = () => {
+            document.getElementById('memoFlight').value = localStorage.getItem('mFlight') || '';
+            document.getElementById('memoHotel').value = localStorage.getItem('mHotel') || '';
+            document.getElementById('memoFood').value = localStorage.getItem('mFood') || '';
+        };
+
+        function saveMemo() {
+            localStorage.setItem('mFlight', document.getElementById('memoFlight').value);
+            localStorage.setItem('mHotel', document.getElementById('memoHotel').value);
+            localStorage.setItem('mFood', document.getElementById('memoFood').value);
+        }
 
         function updateBtn() {
             const city = document.getElementById('targetCity').value.trim();
@@ -119,10 +158,10 @@
 
         function runSearch() {
             const city = document.getElementById('targetCity').value.trim();
-            const adults = document.getElementById('pCount').value;
             const d1 = document.getElementById('dateStart').value.replace(/-/g, '');
             const d2 = document.getElementById('dateEnd').value.replace(/-/g, '');
             if(!city) return;
+            
             document.getElementById('splash').classList.add('hide');
             document.getElementById('foodTitle').innerText = `${city} 맛집 정보`;
             document.getElementById('hotelTitle').innerText = `${city} 숙소 정보`;
@@ -130,15 +169,15 @@
             document.getElementById('foodBtn').innerText = `🍴 ${city} 맛집 보기`;
             document.getElementById('hotelBtn').innerText = `🏨 ${city} 호텔 검색`;
             document.getElementById('weatherBtn').innerText = `🌤️ ${city} 날씨 확인`;
+
             const code = codes[city] || 'HAN';
-            document.getElementById('fFrame').src = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${adults}&isDirect=true&fareType=Y`;
-            changeTab(document.querySelector('.tab'), 'flight');
+            document.getElementById('fFrame').src = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${document.getElementById('pCount').value}&isDirect=true&fareType=Y`;
+            changeTab(document.querySelectorAll('.tab')[0], 'flight');
         }
 
         function goLink(type) {
             const city = document.getElementById('targetCity').value.trim();
-            const date = document.getElementById('dateStart').value;
-            let q = type === 'food' ? `${city} 맛집` : type === 'hotel' ? `${city} 호텔` : `${city} 날씨 ${date}`;
+            const q = type === 'food' ? `${city} 맛집` : type === 'hotel' ? `${city} 호텔` : `${city} 날씨 ${document.getElementById('dateStart').value}`;
             window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
         }
 
