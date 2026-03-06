@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>션투어 - 가격 비교 가이드</title>
+    <title>션투어 - 실시간 통합 가이드</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* 기본 레이아웃 및 탭 스타일 유지 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Noto Sans KR', sans-serif; background: #0c1a2e; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #0c1a2e; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        /* 상단 검색 영역 */
+        .header { background: #0c1a2e; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 10; }
         h1 { font-size: 20px; font-weight: 900; margin-bottom: 12px; color: #fbbf24; text-align: center; }
         .search-container { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -17,29 +18,22 @@
         .input-item label { font-size: 10px; color: #fbbf24; font-weight: bold; }
         input, select { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; padding: 8px; font-size: 14px; outline: none; height: 38px; }
         .sbtn { background: #fbbf24; color: #0c1a2e; border: none; border-radius: 6px; width: 100%; padding: 10px; font-weight: 900; font-size: 15px; cursor: pointer; margin-top: 4px; }
-        
+
+        /* 실시간 탭 메뉴 */
         .tab-menu { display: flex; background: #0c1a2e; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .tab { flex: 1; text-align: center; padding: 14px 0; font-size: 14px; font-weight: bold; color: rgba(255,255,255,0.4); cursor: pointer; position: relative; }
         .tab.on { color: #fbbf24; }
         .tab.on::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: #fbbf24; }
 
+        /* 메인 컨텐츠 (전체 화면 액자) */
         .main-content { flex: 1; position: relative; background: #fff; }
-        .page { display: none; width: 100%; height: 100%; overflow-y: auto; }
+        .page { display: none; width: 100%; height: 100%; overflow: hidden; }
         .page.on { display: block; }
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* 숙소 카드 스타일 보완 */
-        .list-page { background: #0c1a2e; padding: 15px; }
-        .card { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .card-top { display: flex; align-items: center; gap: 12px; }
-        .info { flex: 1; }
-        .name { font-size: 16px; font-weight: bold; color: #fff; margin-bottom: 2px; }
-        .desc { font-size: 12px; opacity: 0.6; color: #fff; }
-        .price-tag { font-size: 18px; font-weight: 900; color: #fbbf24; text-align: right; }
-        .price-tag small { font-size: 11px; opacity: 0.7; font-weight: normal; margin-left: 2px; }
-        .map-btn { background: #4285F4; color: #fff; border: none; padding: 10px; border-radius: 8px; font-size: 13px; width: 100%; font-weight: bold; margin-top: 5px; }
+        /* 안내 화면 */
         .splash { position: absolute; inset: 0; background: #0c1a2e; z-index: 5; display: flex; align-items: center; justify-content: center; text-align: center; }
-        .splash.hide { opacity: 0; pointer-events: none; }
+        .splash.hide { opacity: 0; pointer-events: none; transition: 0.3s; }
     </style>
 </head>
 <body>
@@ -48,54 +42,40 @@
         <h1>✈️ SEAN TOUR</h1>
         <div class="search-container">
             <div class="input-row">
-                <div class="input-item"><label>목적지</label><input type="text" id="targetCity" value="오사카"></div>
-                <div class="input-item" style="flex:0.4;"><label>인원</label><select id="pCount"><option value="1">1명</option><option value="2" selected>2명</option></select></div>
+                <div class="input-item"><label>목적지</label><input type="text" id="targetCity" placeholder="도시 입력" value="오사카"></div>
+                <div class="input-item" style="flex:0.4;"><label>인원</label><select id="pCount"><option value="1">1명</option><option value="2" selected>2명</option><option value="3">3명</option></select></div>
             </div>
             <div class="input-row">
                 <div class="input-item"><label>가는 날</label><input type="date" id="dateStart"></div>
                 <div class="input-item"><label>오는 날</label><input type="date" id="dateEnd"></div>
             </div>
-            <button class="sbtn" onclick="runSearch()">통합 검색 시작</button>
+            <button class="sbtn" onclick="runSearch()">실시간 통합 검색</button>
         </div>
     </div>
 
     <div class="tab-menu">
         <div class="tab on" id="t-flight" onclick="changeTab('flight')">항공권</div>
-        <div class="tab" id="t-food" onclick="changeTab('food')">맛집</div>
-        <div class="tab" id="t-hotel" onclick="changeTab('hotel')">숙소</div>
+        <div class="tab" id="t-food" onclick="changeTab('food')">실시간 맛집</div>
+        <div class="tab" id="t-hotel" onclick="changeTab('hotel')">실시간 숙소</div>
     </div>
 
     <div class="main-content">
-        <div class="page on" id="flightPage"><iframe id="resFrame" src=""></iframe></div>
-        <div class="page list-page" id="foodPage"><div id="foodList"></div></div>
-        <div class="page list-page" id="hotelPage"><div id="hotelList"></div></div>
-        <div class="splash" id="splash"><p style="opacity:0.5;">원하는 도시와 일정을 선택해주세요!</p></div>
+        <div class="page on" id="flightPage"><iframe id="flightFrame"></iframe></div>
+        <div class="page" id="foodPage"><iframe id="foodFrame"></iframe></div>
+        <div class="page" id="hotelPage"><iframe id="hotelFrame"></iframe></div>
+        
+        <div class="splash" id="splash"><p style="opacity:0.5;">목적지와 일정을 입력하고<br>실시간 정보를 확인하세요!</p></div>
     </div>
 
     <script>
-        // 날짜 초기화 로직
+        // 초기 날짜 설정 (2주 뒤)
         const d = new Date(); d.setDate(d.getDate() + 14);
         const e = new Date(d); e.setDate(d.getDate() + 3);
         const s = (x) => x.toISOString().split('T')[0];
         document.getElementById('dateStart').value = s(d);
         document.getElementById('dateEnd').value = s(e);
 
-        const codes = { '오사카': 'KIX', '후쿠오카': 'FUK', '도쿄': 'NRT' };
-        
-        // 실제 데이터 기반 (가격 추가)
-        const cityData = {
-            '오사카': {
-                foods: [
-                    { name: '이치란 라멘 도톤보리', desc: '돈코츠 라멘의 정석', icon: '🍜', price: '1,100엔' },
-                    { name: '모토무라 규카츠', desc: '살살 녹는 소고기 카츠', icon: '🥩', price: '1,930엔' }
-                ],
-                hotels: [
-                    { name: '온야도 노노 난바', desc: '천연온천 & 일본식 다다미 호텔', icon: '🏨', price: '185,000' },
-                    { name: '칸데오 호텔 오사카 난바', desc: '루프탑 노천탕이 매력적인 곳', icon: '🛀', price: '210,000' },
-                    { name: '호텔 그레이스리 오사카 난바', desc: '가성비와 위치를 모두 잡은 호텔', icon: '🛌', price: '120,000' }
-                ]
-            }
-        };
+        const codes = { '오사카': 'KIX', '후쿠오카': 'FUK', '도쿄': 'NRT', '삿포로': 'CTS', '다낭': 'DAD', '방콕': 'BKK' };
 
         function runSearch() {
             const city = document.getElementById('targetCity').value.trim();
@@ -103,36 +83,20 @@
             const d1 = document.getElementById('dateStart').value.replace(/-/g, '');
             const d2 = document.getElementById('dateEnd').value.replace(/-/g, '');
             
+            if(!city) return;
             document.getElementById('splash').classList.add('hide');
+
+            // 1. 항공권 실시간 (네이버)
             const code = codes[city] || 'KIX';
-            
-            // 네이버 항공권 연결
-            document.getElementById('resFrame').src = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${adults}&isDirect=true&fareType=Y`;
+            document.getElementById('flightFrame').src = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${adults}&isDirect=true&fareType=Y`;
 
-            // 데이터 렌더링
-            const info = cityData[city] || cityData['오사카'];
-            renderFoodUI(info.foods, city);
-            renderHotelUI(info.hotels, city);
+            // 2. 맛집 실시간 (구글 지도 검색)
+            document.getElementById('foodFrame').src = `https://www.google.com/maps/search/${encodeURIComponent(city + ' 맛집')}`;
+
+            // 3. 숙소 실시간 (구글 지도 검색 - 가격/평점 포함)
+            document.getElementById('hotelFrame').src = `https://www.google.com/maps/search/${encodeURIComponent(city + ' 호텔')}`;
+
             changeTab('flight');
-        }
-
-        function renderFoodUI(items, city) {
-            let h = '';
-            items.forEach(x => {
-                h += `<div class="card"><div class="card-top"><div style="font-size:24px">${x.icon}</div><div class="info"><div class="name">${x.name}</div><div class="desc">${x.desc}</div></div><div class="price-tag">${x.price}</div></div><button class="map-btn" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(city + ' ' + x.name)}', '_blank')">구글지도 위치보기</button></div>`;
-            });
-            document.getElementById('foodList').innerHTML = h;
-        }
-
-        function renderHotelUI(items, city) {
-            let h = '';
-            // 가격 낮은 순 정렬
-            items.sort((a, b) => a.price.replace(/,/g,'') - b.price.replace(/,/g,''));
-            
-            items.forEach(x => {
-                h += `<div class="card"><div class="card-top"><div style="font-size:24px">${x.icon}</div><div class="info"><div class="name">${x.name}</div><div class="desc">${x.desc}</div></div><div class="price-tag">${x.price}<small>원~</small></div></div><button class="map-btn" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(city + ' ' + x.name)}', '_blank')">구글지도에서 확인</button></div>`;
-            });
-            document.getElementById('hotelList').innerHTML = h;
         }
 
         function changeTab(t) {
