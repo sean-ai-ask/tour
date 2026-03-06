@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>션투어 - 스마트 여행 가이드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #0c1a2e; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* 헤더 스타일 */
+        .header { background: #0c1a2e; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 10; }
+        h1 { font-size: 20px; font-weight: 900; margin-bottom: 12px; color: #fbbf24; text-align: center; }
+        
+        /* 검색창 디자인 */
+        .search-container { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .input-item { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .input-item label { font-size: 10px; color: #fbbf24; font-weight: bold; margin-left: 2px; }
+        
+        input, select { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; padding: 8px; font-size: 14px; width: 100%; outline: none; height: 38px; }
+        .sbtn { background: #fbbf24; color: #0c1a2e; border: none; border-radius: 6px; width: 100%; padding: 10px; font-weight: 900; font-size: 15px; cursor: pointer; margin-top: 4px; }
+
+        /* 탭 메뉴 */
+        .tab-menu { display: flex; background: #0c1a2e; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .tab { flex: 1; text-align: center; padding: 14px 0; font-size: 14px; font-weight: bold; color: rgba(255,255,255,0.4); cursor: pointer; position: relative; }
+        .tab.on { color: #fbbf24; }
+        .tab.on::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: #fbbf24; }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content { flex: 1; position: relative; background: #fff; }
+        .page { display: none; width: 100%; height: 100%; overflow-y: auto; }
+        .page.on { display: block; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* 맛집 카드 스타일 */
+        #foodPage { background: #0c1a2e; padding: 15px; }
+        .food-card { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .food-info { flex: 1; }
+        .food-name { font-size: 15px; font-weight: bold; margin-bottom: 3px; }
+        .food-desc { font-size: 12px; opacity: 0.5; margin-bottom: 8px; }
+        .map-btn { background: #4285F4; color: #fff; border: none; padding: 7px; border-radius: 5px; font-size: 11px; width: 100%; font-weight: bold; }
+
+        /* 대기 화면 */
+        .splash { position: absolute; inset: 0; background: #0c1a2e; z-index: 5; display: flex; align-items: center; justify-content: center; text-align: center; transition: 0.3s; }
+        .splash.hide { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>✈️ SEAN TOUR</h1>
+        <div class="search-container">
+            <div class="input-row">
+                <div class="input-item">
+                    <label>목적지</label>
+                    <input type="text" id="targetCity" placeholder="예: 오사카" value="오사카">
+                </div>
+                <div class="input-item" style="flex:0.4;">
+                    <label>성인</label>
+                    <select id="pCount">
+                        <option value="1">1명</option>
+                        <option value="2" selected>2명</option>
+                        <option value="3">3명</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-item">
+                    <label>가는 날</label>
+                    <input type="date" id="dateStart">
+                </div>
+                <div class="input-item">
+                    <label>오는 날</label>
+                    <input type="date" id="dateEnd">
+                </div>
+            </div>
+            <button class="sbtn" onclick="runSearch()">실시간 통합 검색</button>
+        </div>
+    </div>
+
+    <div class="tab-menu">
+        <div class="tab on" id="t-flight" onclick="changeTab('flight')">실시간 항공권</div>
+        <div class="tab" id="t-food" onclick="changeTab('food')">현지 추천 맛집</div>
+    </div>
+
+    <div class="main-content">
+        <div class="page on" id="flightPage">
+            <iframe id="resFrame" src=""></iframe>
+        </div>
+        <div class="page" id="foodPage">
+            <div id="foodList"></div>
+        </div>
+        <div class="splash" id="splash">
+            <p style="opacity:0.5; font-size: 14px;">목적지와 일정을 입력하고<br>검색 버튼을 눌러주세요!</p>
+        </div>
+    </div>
+
+    <script>
+        // 초기 날짜 자동 설정 (2주 뒤 일정)
+        const now = new Date();
+        const start = new Date(now); start.setDate(now.getDate() + 14);
+        const end = new Date(start); end.setDate(start.getDate() + 17);
+        const toStr = (d) => d.toISOString().split('T')[0];
+        document.getElementById('dateStart').value = toStr(start);
+        document.getElementById('dateEnd').value = toStr(end);
+
+        const codes = { '오사카': 'KIX', '후쿠오카': 'FUK', '도쿄': 'NRT', '방콕': 'BKK', '다낭': 'DAD', '나트랑': 'CXR' };
+
+        // 실제 유명 맛집 데이터
+        const cityFoods = {
+            '오사카': [
+                { name: '이치란 라멘 도톤보리', desc: '줄 서서 먹는 돈코츠 라멘의 정석', icon: '🍜' },
+                { name: '모토무라 규카츠', desc: '입안에서 살살 녹는 소고기 카츠', icon: '🥩' },
+                { name: '카니도락 본점', desc: '대게 요리 코스로 유명한 명소', icon: '🦀' }
+            ],
+            '후쿠오카': [
+                { name: '키와미야 함바그', desc: '텐진 명물 돌판 함바그', icon: '🍔' },
+                { name: '요시즈카 우나기야', desc: '140년 전통의 장어덮밥 노포', icon: '🍱' }
+            ]
+        };
+
+        function runSearch() {
+            const city = document.getElementById('targetCity').value.trim();
+            const adults = document.getElementById('pCount').value;
+            const d1 = document.getElementById('dateStart').value.replace(/-/g, '');
+            const d2 = document.getElementById('dateEnd').value.replace(/-/g, '');
+            
+            if(!city || !d1 || !d2) return;
+
+            document.getElementById('splash').classList.add('hide');
+            const code = codes[city] || 'KIX';
+
+            // 1. 네이버 항공권 실시간 연동
+            const naverUrl = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${adults}&isDirect=true&fareType=Y`;
+            document.getElementById('resFrame').src = naverUrl;
+
+            // 2. 맛집 업데이트
+            const foods = cityFoods[city] || cityFoods['오사카'];
+            let html = '';
+            foods.forEach(f => {
+                html += `
+                <div class="food-card">
+                    <div class="food-info">
+                        <div class="food-name">${f.icon} ${f.name}</div>
+                        <div class="food-desc">${f.desc}</div>
+                        <button class="map-btn" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(city + ' ' + f.name)}', '_blank')">구글지도 위치보기</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('foodList').innerHTML = html;
+            changeTab('flight');
+        }
+
+        function changeTab(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+            document.getElementById('t-' + type).classList.add('on');
+            document.getElementById(type + 'Page').classList.add('on');
+        }
+    </script>
+</body>
+</html>
