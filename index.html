@@ -1,16 +1,137 @@
-// 실제 오사카 데이터 반영 버전
-        const cityData = {
-            '오사카': { 
-                code: 'KIX', 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>션투어 - 스마트 여행 가이드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #0c1a2e; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .header { background: #0c1a2e; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 10; }
+        h1 { font-size: 20px; font-weight: 900; margin-bottom: 12px; color: #fbbf24; text-align: center; }
+        
+        .search-container { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .input-item { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .input-item label { font-size: 10px; color: #fbbf24; font-weight: bold; }
+        
+        input, select { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; padding: 8px; font-size: 14px; outline: none; height: 38px; }
+        .sbtn { background: #fbbf24; color: #0c1a2e; border: none; border-radius: 6px; width: 100%; padding: 10px; font-weight: 900; font-size: 15px; cursor: pointer; margin-top: 4px; }
+
+        .tab-menu { display: flex; background: #0c1a2e; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .tab { flex: 1; text-align: center; padding: 14px 0; font-size: 14px; font-weight: bold; color: rgba(255,255,255,0.4); cursor: pointer; position: relative; }
+        .tab.on { color: #fbbf24; }
+        .tab.on::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: #fbbf24; }
+
+        .main-content { flex: 1; position: relative; background: #fff; }
+        .page { display: none; width: 100%; height: 100%; overflow-y: auto; }
+        .page.on { display: block; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .list-page { background: #0c1a2e; padding: 15px; }
+        .card { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .info { flex: 1; }
+        .name { font-size: 15px; font-weight: bold; margin-bottom: 3px; }
+        .desc { font-size: 12px; opacity: 0.5; margin-bottom: 8px; }
+        .map-btn { background: #4285F4; color: #fff; border: none; padding: 7px; border-radius: 5px; font-size: 11px; width: 100%; font-weight: bold; }
+
+        .splash { position: absolute; inset: 0; background: #0c1a2e; z-index: 5; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .splash.hide { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>✈️ SEAN TOUR</h1>
+        <div class="search-container">
+            <div class="input-row">
+                <div class="input-item">
+                    <label>목적지</label>
+                    <input type="text" id="targetCity" value="오사카">
+                </div>
+                <div class="input-item" style="flex:0.4;">
+                    <label>인원</label>
+                    <select id="pCount">
+                        <option value="1">1명</option>
+                        <option value="2" selected>2명</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-item"><label>가는 날</label><input type="date" id="dateStart"></div>
+                <div class="input-item"><label>오는 날</label><input type="date" id="dateEnd"></div>
+            </div>
+            <button class="sbtn" onclick="runSearch()">통합 검색</button>
+        </div>
+    </div>
+
+    <div class="tab-menu">
+        <div class="tab on" id="t-flight" onclick="changeTab('flight')">항공권</div>
+        <div class="tab" id="t-food" onclick="changeTab('food')">맛집</div>
+        <div class="tab" id="t-hotel" onclick="changeTab('hotel')">숙소</div>
+    </div>
+
+    <div class="main-content">
+        <div class="page on" id="flightPage"><iframe id="resFrame"></iframe></div>
+        <div class="page list-page" id="foodPage"><div id="foodList"></div></div>
+        <div class="page list-page" id="hotelPage"><div id="hotelList"></div></div>
+        <div class="splash" id="splash"><p style="opacity:0.5;">일정을 선택하고 검색 버튼을 눌러주세요!</p></div>
+    </div>
+
+    <script>
+        const now = new Date();
+        const start = new Date(now); start.setDate(now.getDate() + 14);
+        const end = new Date(start); end.setDate(start.getDate() + 3);
+        const toStr = (d) => d.toISOString().split('T')[0];
+        document.getElementById('dateStart').value = toStr(start);
+        document.getElementById('dateEnd').value = toStr(end);
+
+        const codes = { '오사카': 'KIX', '후쿠오카': 'FUK', '도쿄': 'NRT', '다낭': 'DAD' };
+        const data = {
+            '오사카': {
                 foods: [
-                    { name: '이치란 라멘 도톤보리', desc: '설명이 필요 없는 돈코츠 라멘의 정석', icon: '🍜' },
-                    { name: '모토무라 규카츠', desc: '입안에서 살살 녹는 소고기 카츠 맛집', icon: '🥩' },
-                    { name: '카니도락 본점', desc: '도톤보리의 상징, 대게 코스 요리 전문점', icon: '🦀' }
+                    { name: '이치란 라멘 도톤보리', desc: '돈코츠 라멘의 정석', icon: '🍜' },
+                    { name: '모토무라 규카츠', desc: '살살 녹는 소고기 카츠', icon: '🥩' }
                 ],
                 hotels: [
-                    { name: '온야도 노노 난바', desc: '도톤보리 인근 천연온천이 있는 인기 호텔', icon: '🏨' },
-                    { name: '칸데오 호텔 오사카 난바', desc: '루프탑 노천탕으로 유명한 4성급 호텔', icon: '🛀' }
+                    { name: '온야도 노노 난바', desc: '천연온천이 있는 인기 호텔', icon: '🏨' },
+                    { name: '칸데오 호텔 오사카', desc: '전망 좋은 노천탕', icon: '🛀' }
                 ]
             }
-            // 다른 도시들도 이런 식으로 추가 가능합니다.
         };
+
+        function runSearch() {
+            const city = document.getElementById('targetCity').value.trim();
+            const adults = document.getElementById('pCount').value;
+            const d1 = document.getElementById('dateStart').value.replace(/-/g, '');
+            const d2 = document.getElementById('dateEnd').value.replace(/-/g, '');
+            
+            document.getElementById('splash').classList.add('hide');
+            const code = codes[city] || 'KIX';
+            document.getElementById('resFrame').src = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${adults}&isDirect=true&fareType=Y`;
+
+            const cityInfo = data[city] || data['오사카'];
+            renderList('foodList', cityInfo.foods, city);
+            renderList('hotelList', cityInfo.hotels, city);
+            changeTab('flight');
+        }
+
+        function renderList(id, items, city) {
+            let html = '';
+            items.forEach(f => {
+                html += `<div class="card"><div class="info"><div class="name">${f.icon} ${f.name}</div><div class="desc">${f.desc}</div><button class="map-btn" onclick="window.open('https://www.google.com/maps/search/?api=1\&query='+encodeURIComponent(dk+{encodeURIComponent(city + ' ' + f.name)}', '_blank')">구글지도</button></div></div>`;
+            });
+            document.getElementById(id).innerHTML = html;
+        }
+
+        function changeTab(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+            document.getElementById('t-' + type).classList.add('on');
+            document.getElementById(type + 'Page').classList.add('on');
+        }
+    </script>
+</body>
+</html>
