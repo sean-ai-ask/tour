@@ -17,32 +17,21 @@
         input, select, textarea { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff; padding: 6px; font-size: 13px; outline: none; }
         input, select { height: 34px; }
         .sbtn { background: #fbbf24; color: #0c1a2e; border: none; border-radius: 6px; width: 100%; padding: 12px; font-weight: 900; font-size: 15px; cursor: pointer; }
-        
-        .tab-menu { display: flex; background: #0c1a2e; border-bottom: 1px solid rgba(255,255,255,0.1); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .tab-menu { display: flex; background: #0c1a2e; border-bottom: 1px solid rgba(255,255,255,0.1); overflow-x: auto; }
         .tab { padding: 15px 18px; font-size: 14px; font-weight: bold; color: rgba(255,255,255,0.4); cursor: pointer; position: relative; flex-shrink: 0; }
         .tab.on { color: #fbbf24; }
         .tab.on::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 3px; background: #fbbf24; }
-        
         .main-content { flex: 1; position: relative; background: #fff; }
         .page { display: none; width: 100%; height: 100%; overflow-y: auto; }
         .page.on { display: block; }
         iframe { width: 100%; height: 100%; border: none; }
-        
         .link-page { background: #0c1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         .link-btn { background: #4285F4; color: #fff; border: none; padding: 16px 20px; border-radius: 10px; font-weight: bold; font-size: 16px; margin-top: 20px; width: 100%; max-width: 280px; }
-
-        /* 예약 탭 디자인 */
         #myPage { background: #f4f7f9; padding: 15px; color: #333; }
-        .reserve-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .reserve-card h4 { font-size: 14px; margin-bottom: 10px; color: #0c1a2e; display: flex; align-items: center; gap: 5px; }
-        textarea { width: 100%; background: #f9f9f9; color: #333; border: 1px solid #ddd; height: 80px; resize: none; font-family: inherit; }
-
+        .reserve-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
         #calcPage { background: #0c1a2e; padding: 15px; }
         .calc-card { background: rgba(255,255,255,0.07); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
-        .calc-input-wrap { position: relative; display: flex; align-items: center; margin-top: 5px; }
-        .calc-input-wrap input { font-size: 18px; font-weight: bold; width: 100%; height: 45px; }
-        
-        .splash { position: absolute; inset: 0; background: #0c1a2e; z-index: 5; display: flex; align-items: center; justify-content: center; text-align: center; transition: 0.3s; }
+        .splash { position: absolute; inset: 0; background: #0c1a2e; z-index: 5; display: flex; align-items: center; justify-content: center; text-align: center; }
         .splash.hide { opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -54,7 +43,7 @@
             <div class="input-row">
                 <div class="input-item">
                     <label>어디로 떠나시나요?</label>
-                    <input type="text" id="targetCity" value="" placeholder="도시명을 입력하세요" oninput="updateBtn()">
+                    <input type="text" id="targetCity" value="" placeholder="도시명을 입력하세요 (예: 시즈오카)" oninput="updateBtn()">
                 </div>
                 <div class="input-item" style="flex:0.4;">
                     <label>인원</label>
@@ -80,48 +69,26 @@
 
     <div class="main-content">
         <div class="page on" id="flightPage"><iframe id="fFrame"></iframe></div>
-        
-        <div class="page link-page" id="foodPage">
-            <h3 id="foodTitle" style="color:#fbbf24">맛집 정보</h3>
-            <button id="foodBtn" class="link-btn" onclick="goLink('food')">🍴 맛집 보기</button>
-        </div>
-
-        <div class="page link-page" id="hotelPage">
-            <h3 id="hotelTitle" style="color:#fbbf24">숙소 정보</h3>
-            <button id="hotelBtn" class="link-btn" onclick="goLink('hotel')">🏨 호텔 검색</button>
-        </div>
-
-        <div class="page link-page" id="weatherPage">
-            <h3 id="weatherTitle" style="color:#fbbf24">날씨 정보</h3>
-            <button id="weatherBtn" class="link-btn" onclick="goLink('weather')">🌤️ 날씨 확인</button>
-        </div>
+        <div class="page link-page" id="foodPage"><h3 id="foodTitle" style="color:#fbbf24">맛집 정보</h3><button id="foodBtn" class="link-btn" onclick="goLink('food')">🍴 맛집 보기</button></div>
+        <div class="page link-page" id="hotelPage"><h3 id="hotelTitle" style="color:#fbbf24">숙소 정보</h3><button id="hotelBtn" class="link-btn" onclick="goLink('hotel')">🏨 호텔 검색</button></div>
+        <div class="page link-page" id="weatherPage"><h3 id="weatherTitle" style="color:#fbbf24">날씨 정보</h3><button id="weatherBtn" class="link-btn" onclick="goLink('weather')">🌤️ 날씨 확인</button></div>
 
         <div class="page" id="myPage">
-            <div class="reserve-card">
-                <h4>✈️ 항공권 예약 정보</h4>
-                <textarea id="memoFlight" placeholder="예: 7C2803 인천-하노이 10:20 출발" oninput="saveMemo()"></textarea>
-            </div>
-            <div class="reserve-card">
-                <h4>🏨 숙소 예약 정보</h4>
-                <textarea id="memoHotel" placeholder="예: 소피텔 레전드 메트로폴 하노이 (체크인 14:00)" oninput="saveMemo()"></textarea>
-            </div>
-            <div class="reserve-card">
-                <h4>🍴 맛집 리스트</h4>
-                <textarea id="memoFood" placeholder="예: 오바마 분짜, 콩카페 본점" oninput="saveMemo()"></textarea>
-            </div>
-            <p style="font-size:11px; color:#888; text-align:center;">* 입력 시 자동으로 저장되며 나중에 다시 볼 수 있습니다.</p>
+            <div class="reserve-card"><h4>✈️ 항공권</h4><textarea id="memoFlight" placeholder="예약 정보 입력" oninput="saveMemo()"></textarea></div>
+            <div class="reserve-card"><h4>🏨 숙소</h4><textarea id="memoHotel" placeholder="숙소 정보 입력" oninput="saveMemo()"></textarea></div>
+            <div class="reserve-card"><h4>🍴 맛집</h4><textarea id="memoFood" placeholder="가고 싶은 곳 입력" oninput="saveMemo()"></textarea></div>
         </div>
 
         <div class="page" id="calcPage">
             <div class="calc-card">
                 <p style="font-size:12px; margin-bottom:10px; color:#fbbf24">🇻🇳 베트남 동(VND)</p>
-                <div class="calc-input-wrap"><input type="number" id="v" oninput="ex('v')" placeholder="동(VND) 입력"><span style="position:absolute; right:10px; color:#aaa;">₫</span></div>
-                <div class="calc-input-wrap"><input type="number" id="v_k" oninput="ex('v_k')" placeholder="원(KRW) 환산"><span style="position:absolute; right:10px; color:#aaa;">₩</span></div>
+                <input type="number" id="v" oninput="ex('v')" placeholder="동(VND) 입력" style="width:100%; margin-bottom:5px;">
+                <input type="number" id="v_k" oninput="ex('v_k')" placeholder="원(KRW) 환산" style="width:100%;">
             </div>
             <div class="calc-card">
                 <p style="font-size:12px; margin-bottom:10px; color:#fbbf24">🇯🇵 일본 엔화(JPY)</p>
-                <div class="calc-input-wrap"><input type="number" id="j" oninput="ex('j')" placeholder="엔(JPY) 입력"><span style="position:absolute; right:10px; color:#aaa;">¥</span></div>
-                <div class="calc-input-wrap"><input type="number" id="j_k" oninput="ex('j_k')" placeholder="원(KRW) 환산"><span style="position:absolute; right:10px; color:#aaa;">₩</span></div>
+                <input type="number" id="j" oninput="ex('j')" placeholder="엔(JPY) 입력" style="width:100%; margin-bottom:5px;">
+                <input type="number" id="j_k" oninput="ex('j_k')" placeholder="원(KRW) 환산" style="width:100%;">
             </div>
         </div>
 
@@ -129,16 +96,15 @@
     </div>
 
     <script>
-        const codes = { '하노이': 'HAN', '오사카': 'KIX', '도쿄': 'NRT', '다낭': 'DAD', '나트랑': 'CXR', '방콕': 'BKK' };
+        // 시즈오카(FSZ) 포함 주요 공항 코드 업데이트
+        const codes = { '하노이': 'HAN', '오사카': 'KIX', '도쿄': 'NRT', '후쿠오카': 'FUK', '시즈오카': 'FSZ', '다낭': 'DAD', '나트랑': 'CXR', '방콕': 'BKK' };
         
-        // 날짜 설정
         const d = new Date(); d.setDate(d.getDate() + 14);
         const e = new Date(d); e.setDate(d.getDate() + 17);
         const fmt = (x) => x.toISOString().split('T')[0];
         document.getElementById('dateStart').value = fmt(d);
         document.getElementById('dateEnd').value = fmt(e);
 
-        // 메모 불러오기
         window.onload = () => {
             document.getElementById('memoFlight').value = localStorage.getItem('mFlight') || '';
             document.getElementById('memoHotel').value = localStorage.getItem('mHotel') || '';
@@ -158,11 +124,22 @@
 
         function runSearch() {
             const city = document.getElementById('targetCity').value.trim();
+            if(!city) return;
+            document.getElementById('splash').classList.add('hide');
+            
             const d1 = document.getElementById('dateStart').value.replace(/-/g, '');
             const d2 = document.getElementById('dateEnd').value.replace(/-/g, '');
-            if(!city) return;
-            
-            document.getElementById('splash').classList.add('hide');
+            const adults = document.getElementById('pCount').value;
+
+            // 등록되지 않은 도시일 경우 네이버 항공권 메인 검색으로 연결
+            const code = codes[city];
+            if (code) {
+                document.getElementById('fFrame').src = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${adults}&isDirect=true&fareType=Y`;
+            } else {
+                // 코드가 없으면 해당 도시 검색 결과 페이지로 연결
+                document.getElementById('fFrame').src = `https://m-flight.naver.com/flights/international/search?trip=RT&itinerary=ICN-${city}-${d1},${city}-ICN-${d2}&adult=${adults}`;
+            }
+
             document.getElementById('foodTitle').innerText = `${city} 맛집 정보`;
             document.getElementById('hotelTitle').innerText = `${city} 숙소 정보`;
             document.getElementById('weatherTitle').innerText = `${city} 날씨 정보`;
@@ -170,8 +147,6 @@
             document.getElementById('hotelBtn').innerText = `🏨 ${city} 호텔 검색`;
             document.getElementById('weatherBtn').innerText = `🌤️ ${city} 날씨 확인`;
 
-            const code = codes[city] || 'HAN';
-            document.getElementById('fFrame').src = `https://m-flight.naver.com/flights/international/ICN-${code}-${d1}/${code}-ICN-${d2}?adult=${document.getElementById('pCount').value}&isDirect=true&fareType=Y`;
             changeTab(document.querySelectorAll('.tab')[0], 'flight');
         }
 
